@@ -1,0 +1,59 @@
+name: Build OpenOCD
+
+on: [push]
+
+jobs:
+  openocd-build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Setup build environment
+      run: |
+       sudo apt-get update
+       sudo apt-get -y install \
+       make libtool pkg-config autoconf automake \
+       texinfo tree libusb-dev libusb-1.0 \
+       libhidapi-dev libftdi-dev
+
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Clone OpenOCD repo
+      run: |
+       git clone http://openocd.zylin.com/openocd.git
+
+    - name: "./bootstrap"
+      run: |
+       (cd openocd && ./bootstrap)
+
+    - name: "./configure"
+      run: |
+       (cd openocd && ./configure --prefix=/opt/openocd \
+       --enable-ftdi --enable-stlink --enable-ti-icdi \
+       --enable-ulink --enable-usb-blaster-2 --enable-ft232r \
+       --enable-vsllink --enable-xds110 --enable-osbdm \
+       --enable-opendous --enable-aice --enable-usbprog \
+       --enable-rlink --enable-armjtagew --enable-cmsis-dap \
+       --enable-kitprog --enable-usb-blaster --enable-presto \
+       --enable-openjtag --enable-jlink)
+
+    - name: Make
+      run: (cd openocd && make -j8)
+
+    - name: Make install
+      run: (cd openocd && make install)
+
+    - name: Debian package
+      run: |
+       sed -i s/VERSION/$(date '+%Y%m%dT%H%M')/g deb-package/DEBIAN/control
+       mkdir -p deb-package/opt/openocd
+       cp -r /opt/openocd/* deb-package/opt/openocd/
+       sudo chown -R root:root deb-package/opt/openocd/
+       dpkg-deb --build deb-package
+       mv deb-package.deb openocd-build.deb
+
+    - name: Debian package artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: debian-package
+        path: openocd-build.deb
