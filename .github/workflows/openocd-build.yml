@@ -1,12 +1,25 @@
 name: Build OpenOCD
 
-on: [push]
+on:
+  push:
+    branches:
+      - '*'
+  schedule:
+    - cron: "53 2 * * 1"
 
 jobs:
   openocd-build:
     runs-on: ubuntu-18.04
+    #env:
+    #  version: ERROR_VERSION
 
     steps:
+    - name: Build Version
+      run: |
+       export VERSION_TMP="$(date +'%Y%m%d.%H%M')"
+       echo "::set-env name=VERSION::$VERSION_TMP"
+       echo $VERSION
+
     - name: Setup build environment
       run: |
        sudo apt-get update
@@ -45,7 +58,7 @@ jobs:
 
     - name: Debian package
       run: |
-       sed -i s/VERSION/$(date '+%Y%m%dT%H%M')/g deb-package/DEBIAN/control
+       sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
        mkdir -p deb-package/opt/openocd
        cp -r /opt/openocd/* deb-package/opt/openocd/
        sudo chown -R root:root deb-package/opt/openocd/
@@ -57,3 +70,25 @@ jobs:
       with:
         name: debian-package
         path: openocd-build.deb
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.VERSION }}
+        release_name: Release ${{ env.VERSION }}
+        draft: false
+        prerelease: true
+
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./openocd-build.deb
+        asset_name: openocd-build.deb
+        asset_content_type: application/vnd.debian.binary-package
