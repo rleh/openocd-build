@@ -57,7 +57,7 @@ jobs:
        (cd openocd && ./bootstrap)
     - name: "./configure"
       run: |
-       (cd openocd && ./configure --prefix=/opt/openocd \
+       (cd openocd && ./configure --prefix=/usr/local \
        --enable-ftdi --enable-stlink --enable-ti-icdi \
        --enable-ulink --enable-usb-blaster-2 --enable-ft232r \
        --enable-vsllink --enable-xds110 --enable-osbdm \
@@ -72,9 +72,9 @@ jobs:
     - name: Debian package
       run: |
        sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
-       mkdir -p deb-package/opt/openocd
-       cp -r /opt/openocd/* deb-package/opt/openocd/
-       sudo chown -R root:root deb-package/opt/openocd/
+       mkdir -p deb-package
+       rsync -aR /usr/local/{bin/openocd,share/info/openocd*,share/man/*/openocd*,share/openocd/} deb-package/
+       sudo chown -R root:root deb-package/
        dpkg-deb --build deb-package
     - name: Test package installation
       run: sudo apt-get -y install ./deb-package.deb
