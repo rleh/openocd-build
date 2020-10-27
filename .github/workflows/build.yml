@@ -68,7 +68,7 @@ jobs:
     - name: Make
       run: (cd openocd && make -j8)
     - name: Make install
-      run: (cd openocd && make install)
+      run: (cd openocd && sudo make install)
     - name: Debian package
       run: |
        sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
