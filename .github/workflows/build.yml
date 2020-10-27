@@ -164,7 +164,7 @@ jobs:
           apt-get update
           apt-get -y install make libtool pkg-config autoconf automake texinfo tree libusb-dev libusb-1.0 libhidapi-dev libftdi-dev git build-essential
           (git clone http://openocd.zylin.com/openocd.git && cd openocd && ./bootstrap)
-          (cd openocd && ./configure --prefix=/opt/openocd \
+          (cd openocd && ./configure --prefix=/usr/local \
           --enable-ftdi --enable-stlink --enable-ti-icdi \
           --enable-ulink --enable-usb-blaster-2 --enable-ft232r \
           --enable-vsllink --enable-xds110 --enable-osbdm \
@@ -173,31 +173,12 @@ jobs:
           --enable-kitprog --enable-usb-blaster --enable-presto \
           --enable-openjtag --enable-jlink)
           (cd openocd && make -j8)
-          (cd openocd && make install)
-          #cp openocd/contrib/60-openocd.rules /lib/udev/rules.d/60-openocd.rules
+          (cd openocd && sudo make install)
           sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
           sed -i s/amd64/arm64/g deb-package/DEBIAN/control
-          mkdir -p deb-package/opt/openocd
-          cp -r /opt/openocd/* deb-package/opt/openocd/
-          chown -R root:root deb-package/opt/openocd/
-          #mkdir -p deb-package/lib/udev/rules.d
-          #mkdir -p deb-package/usr/bin
-          #mkdir -p deb-package/usr/share/doc/openocd
-          #mkdir -p deb-package/usr/share/doc-base
-          #mkdir -p deb-package/usr/share/info
-          #mkdir -p deb-package/usr/share/lintian/overrides
-          #mkdir -p deb-package/usr/share/man/man1
-          #mkdir -p deb-package/usr/share/metainfo
-          #mkdir -p deb-package/usr/share/openocd
-          #cp -r /lib/udev/rules.d/60-openocd.rules deb-package/lib/udev/rules.d/60-openocd.rules
-          #cp -r /usr/bin/openocd deb-package/usr/bin/openocd
-          #cp -r /usr/share/doc/openocd/* deb-package/usr/share/doc/openocd/
-          #cp -r /usr/share/doc-base/openocd deb-package/usr/share/doc-base/openocd
-          #cp -r /usr/share/info/openocd.* deb-package/usr/share/info/
-          #cp -r /usr/share/lintian/overrides/openocd deb-package/usr/share/lintian/overrides/openocd
-          #cp -r /usr/share/man/man1/openocd.1.gz deb-package/usr/share/man/man1/openocd.1.gz
-          #cp -r /usr/share/metainfo/org.openocd.metainfo.xml deb-package/usr/share/metainfo/org.openocd.metainfo.xml
-          #cp -r /usr/share/openocd/* deb-package/usr/share/openocd/
+          mkdir -p deb-package
+          rsync -aR /usr/local/{bin/openocd,share/info/openocd*,share/man/*/openocd*,share/openocd/} deb-package/
+          chown -R root:root deb-package
           dpkg-deb --build deb-package
           apt-get -y install ./deb-package.deb
 
