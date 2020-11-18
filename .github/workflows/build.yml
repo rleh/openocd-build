@@ -15,7 +15,7 @@ jobs:
       id: version
       run: |
        export VERSION_TMP="$(date +'%Y%m%d.%H%M')"
-       echo "::set-env name=VERSION::$VERSION_TMP"
+       echo "VERSION=$VERSION_TMP" >> $GITHUB_ENV
        echo $VERSION
        echo "::set-output name=VERSION::$VERSION_TMP"
     - name: Create Release
@@ -38,7 +38,7 @@ jobs:
     steps:
     - name: Version
       run: |
-       echo "::set-env name=VERSION::${{ needs.init.outputs.version }}"
+       echo "VERSION=${{ needs.init.outputs.version }}" >> $GITHUB_ENV
        echo $VERSION
     - name: Setup build environment
       run: |
@@ -102,7 +102,7 @@ jobs:
     steps:
     - name: Version
       run: |
-       echo "::set-env name=VERSION::${{ needs.init.outputs.version }}"
+       echo "VERSION=${{ needs.init.outputs.version }}" >> $GITHUB_ENV
        echo $VERSION
     - name: Check out repository
       uses: actions/checkout@v2
@@ -123,7 +123,7 @@ jobs:
        rpmbuild -ba openocd.spec
        ls ~/rpmbuild/RPMS/x86_64/
        export RPM_FILE_TMP="$(ls ~/rpmbuild/RPMS/x86_64/)"
-       echo "::set-env name=RPM_FILE::$RPM_FILE_TMP"
+       echo "RPM_FILE=$RPM_FILE_TMP" >> $GITHUB_ENV
        echo $RPM_FILE
     #- name: RPM package artifact
     #  uses: actions/upload-artifact@v2
@@ -147,7 +147,7 @@ jobs:
     steps:
     - name: Version
       run: |
-       echo "::set-env name=VERSION::${{ needs.init.outputs.version }}"
+       echo "VERSION=${{ needs.init.outputs.version }}" >> $GITHUB_ENV
        echo $VERSION
     - name: Check out repository
       uses: actions/checkout@v2
