@@ -1,6 +1,6 @@
 Name:       openocd
-Version:    master
-Release:    VERSION
+Version:    0.11.0
+Release:    master.VERSION
 Summary:    Debugging, in-system programming and boundary-scan testing for embedded devices
 
 License:    GPLv2
