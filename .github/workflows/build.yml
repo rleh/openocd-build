@@ -173,7 +173,7 @@ jobs:
           --enable-kitprog --enable-usb-blaster --enable-presto \
           --enable-openjtag --enable-jlink)
           (cd openocd && make -j8)
-          (cd openocd && sudo make install)
+          (cd openocd && make install)
           sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
           sed -i s/amd64/arm64/g deb-package/DEBIAN/control
           mkdir -p deb-package
