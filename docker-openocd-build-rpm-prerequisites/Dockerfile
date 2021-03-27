@@ -1,4 +1,4 @@
-FROM fedora:32
+FROM fedora:33
 LABEL maintainer="Raphael Lehmann <raphael+docker@rleh.de>"
 LABEL Description="Image for building the upstream OpenOCD RPM package on Fedora"
 WORKDIR /work
