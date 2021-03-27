@@ -113,10 +113,10 @@ jobs:
        sed -i s/VERSION/${{ env.VERSION }}/g ~/rpmbuild/SPECS/openocd.spec
     - name: Clone OpenOCD repo and run Bootstrap 
       run: |
-       (git clone http://openocd.zylin.com/openocd.git openocd-master && cd openocd-master/ && ./bootstrap)
-       rm -rf openocd-master/.git/
-       zip -q -r ~/rpmbuild/SOURCES/openocd-master.zip openocd-master
-       rm -rf openocd-master/
+       (git clone http://openocd.zylin.com/openocd.git openocd-0.11.0 && cd openocd-0.11.0/ && ./bootstrap)
+       rm -rf openocd-0.11.0/.git/
+       zip -q -r ~/rpmbuild/SOURCES/openocd-0.11.0.zip openocd-0.11.0
+       rm -rf openocd-0.11.0/
     - name: Build RPM from spec file
       run: |
        cd ~/rpmbuild/SPECS
