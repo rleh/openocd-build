@@ -6,37 +6,40 @@ on:
       - '*'
   workflow_dispatch:
 
+env:
+  OPENOCD_VERSION: "0.12.0+dev~snapshot"
+
 jobs:
 
   init:
     runs-on: ubuntu-22.04
     steps:
-    - name: Version
-      id: version
+    - name: Build Version
+      id: build_version
       run: |
-       export VERSION_TMP="$(date +'%Y%m%d.%H%M')"
-       echo "VERSION=$VERSION_TMP" >> $GITHUB_ENV
-       echo $VERSION
-       echo "version=$VERSION_TMP" >> "$GITHUB_OUTPUT"
+       export BUILD_VERSION_TMP="$(date +'%Y%m%d.%H%M')"
+       echo $BUILD_VERSION_TMP
+       echo "BUILD_VERSION=$BUILD_VERSION_TMP" >> $GITHUB_ENV
+       echo "build_version=$BUILD_VERSION_TMP" >> "$GITHUB_OUTPUT"
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.VERSION }}
+        tag_name: OpenOCD ${{ env.OPENOCD_VERSION }}.${{ env.BUILD_VERSION }}
         draft: true
         prerelease: false
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      build_version: ${{ steps.build_version.outputs.build_version }}
       upload_url: ${{ steps.create_release.outputs.upload_url }}
 
   build-deb:
     needs: init
     runs-on: ubuntu-22.04
     steps:
-    - name: Version
+    - name: Build Version
       run: |
-       echo "VERSION=${{ needs.init.outputs.version }}" >> $GITHUB_ENV
-       echo $VERSION
+       echo "BUILD_VERSION=${{ needs.init.outputs.build_version }}" >> $GITHUB_ENV
+       echo $BUILD_VERSION
     - name: Setup build environment
       run: |
        sudo apt-get update
@@ -68,7 +71,8 @@ jobs:
       run: (cd openocd && sudo make install)
     - name: Debian package
       run: |
-       sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
+       sed -i s/BUILD_VERSION/${{ env.BUILD_VERSION }}/g deb-package/DEBIAN/control
+       sed -i s/OPENOCD_VERSION/${{ env.OPENOCD_VERSION }}/g deb-package/DEBIAN/control
        mkdir -p deb-package
        rsync -aR /usr/local/{bin/openocd,share/info/openocd*,share/man/*/openocd*,share/openocd/} deb-package/
        sudo chown -R root:root deb-package/
@@ -91,7 +95,7 @@ jobs:
         -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         -H "Content-Type: application/vnd.debian.binary-package" \
-        $UPLOAD_URL?name=openocd-master-${{ env.VERSION }}.amd64.deb \
+        $UPLOAD_URL?name=openocd-${{ env.OPENOCD_VERSION }}.${{ env.BUILD_VERSION }}.amd64.deb \
         --data-binary "@deb-package.deb"
 
   build-rpm:
@@ -103,23 +107,25 @@ jobs:
       # docker push ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07)
       image: ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07
     steps:
-    - name: Version
+    - name: Build Version
       run: |
-       echo "VERSION=${{ needs.init.outputs.version }}" >> $GITHUB_ENV
-       echo $VERSION
+       echo "BUILD_VERSION=${{ needs.init.outputs.build_version }}" >> $GITHUB_ENV
+       echo $BUILD_VERSION
     - name: Check out repository
       uses: actions/checkout@v3
     - name: Prepare RPM build
       run: |
        mkdir -p ~/rpmbuild/SOURCES ~/rpmbuild/SPECS ~/rpmbuild/BUILD
        cp rpm-package/openocd.spec ~/rpmbuild/SPECS/openocd.spec
-       sed -i s/VERSION/${{ env.VERSION }}/g ~/rpmbuild/SPECS/openocd.spec
+       sed -i s/BUILD_VERSION/${{ env.BUILD_VERSION }}/g ~/rpmbuild/SPECS/openocd.spec
+       sed -i s/OPENOCD_VERSION/${{ env.OPENOCD_VERSION }}/g ~/rpmbuild/SPECS/openocd.spec
     - name: Clone OpenOCD repo and run Bootstrap 
       run: |
-       (git clone http://openocd.zylin.com/openocd.git openocd-0.12.0 && cd openocd-0.12.0/ && ./bootstrap)
-       rm -rf openocd-0.12.0/.git/
-       zip -q -r ~/rpmbuild/SOURCES/openocd-0.12.0.zip openocd-0.12.0
-       rm -rf openocd-0.12.0/
+       git clone --filter=tree:0 http://openocd.zylin.com/openocd.git openocd-${{ env.OPENOCD_VERSION }}
+       (cd openocd-${{ env.OPENOCD_VERSION }}/ && ./bootstrap)
+       rm -rf openocd-$OPENOCD_VERSION/.git/
+       zip -q -r ~/rpmbuild/SOURCES/openocd-${{ env.OPENOCD_VERSION }}.zip openocd-${{ env.OPENOCD_VERSION }}
+       rm -rf openocd-${{ env.OPENOCD_VERSION }}/
     - name: Build RPM from spec file
       run: |
        cd ~/rpmbuild/SPECS
@@ -149,10 +155,10 @@ jobs:
     needs: init
     runs-on: ubuntu-22.04
     steps:
-    - name: Version
+    - name: Build Version
       run: |
-       echo "VERSION=${{ needs.init.outputs.version }}" >> $GITHUB_ENV
-       echo $VERSION
+       echo "BUILD_VERSION=${{ needs.init.outputs.build_version }}" >> $GITHUB_ENV
+       echo $BUILD_VERSION
     - name: Check out repository
       uses: actions/checkout@v3
     - name: Build on Arm64
@@ -177,7 +183,8 @@ jobs:
           --enable-openjtag --enable-jlink)
           (cd openocd && make -j8)
           (cd openocd && make install)
-          sed -i s/VERSION/${{ env.VERSION }}/g deb-package/DEBIAN/control
+          sed -i s/BUILD_VERSION/${{ env.BUILD_VERSION }}/g deb-package/DEBIAN/control
+          sed -i s/OPENOCD_VERSION/${{ env.OPENOCD_VERSION }}/g deb-package/DEBIAN/control
           sed -i s/amd64/arm64/g deb-package/DEBIAN/control
           mkdir -p deb-package
           rsync -aR /usr/local/{bin/openocd,share/info/openocd*,share/man/*/openocd*,share/openocd/} deb-package/
@@ -199,5 +206,5 @@ jobs:
         -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         -H "Content-Type: application/vnd.debian.binary-package" \
-        $UPLOAD_URL?name=openocd-master-${{ env.VERSION }}.arm64.deb \
+        $UPLOAD_URL?name=openocd-${{ env.OPENOCD_VERSION }}.${{ env.BUILD_VERSION }}.arm64.deb \
         --data-binary "@deb-package.deb"
