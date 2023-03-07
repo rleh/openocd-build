@@ -98,7 +98,10 @@ jobs:
     needs: init
     runs-on: ubuntu-22.04
     container:
-      image: rleh/openocd-build-rpm-prerequisites:latest
+      # To update: (cd docker-openocd-build-rpm-prerequisites/ && \
+      # docker build -t ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07 && \
+      # docker push ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07)
+      image: ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07
     steps:
     - name: Version
       run: |
@@ -113,18 +116,18 @@ jobs:
        sed -i s/VERSION/${{ env.VERSION }}/g ~/rpmbuild/SPECS/openocd.spec
     - name: Clone OpenOCD repo and run Bootstrap 
       run: |
-       (git clone http://openocd.zylin.com/openocd.git openocd-0.11.0 && cd openocd-0.11.0/ && ./bootstrap)
-       rm -rf openocd-0.11.0/.git/
-       zip -q -r ~/rpmbuild/SOURCES/openocd-0.11.0.zip openocd-0.11.0
-       rm -rf openocd-0.11.0/
+       (git clone http://openocd.zylin.com/openocd.git openocd-0.12.0 && cd openocd-0.12.0/ && ./bootstrap)
+       rm -rf openocd-0.12.0/.git/
+       zip -q -r ~/rpmbuild/SOURCES/openocd-0.12.0.zip openocd-0.12.0
+       rm -rf openocd-0.12.0/
     - name: Build RPM from spec file
       run: |
        cd ~/rpmbuild/SPECS
        rpmbuild -ba openocd.spec
        ls ~/rpmbuild/RPMS/x86_64/
-       export RPM_FILE_TMP="$(ls ~/rpmbuild/RPMS/x86_64/)"
+       export RPM_FILE_TMP="$(ls ~/rpmbuild/RPMS/x86_64/ | grep -v debug)"
+       echo "RPM_FILE: $RPM_FILE_TMP"
        echo "RPM_FILE=$RPM_FILE_TMP" >> $GITHUB_ENV
-       echo $RPM_FILE
     #- name: RPM package artifact
     #  uses: actions/upload-artifact@v2
     #  with:
