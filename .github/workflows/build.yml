@@ -102,11 +102,12 @@ jobs:
     needs: init
     runs-on: ubuntu-22.04
     container:
-      # To update: (cd docker-openocd-build-rpm-prerequisites/ && \
-      # docker build -t ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07 && \
-      # docker push ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07)
-      image: ghcr.io/rleh/openocd-build-rpm-prerequisites:fedora37_2022-03-07
+      image: fedora:37
     steps:
+    - name: Update Fedora and install dependencies
+      run: |
+        dnf update -y
+        dnf install -y make libtool pkg-config autoconf automake texinfo tree libusbx-devel hidapi-devel libftdi-devel rpm git which zip rpm-build capstone-devel chrpath jimtcl-devel libjaylink-devel libgpiod-devel sdcc
     - name: Build Version
       run: |
        echo "BUILD_VERSION=${{ needs.init.outputs.build_version }}" >> $GITHUB_ENV
