@@ -12,7 +12,7 @@ BuildRequires: chrpath
 BuildRequires: gcc
 BuildRequires: hidapi-devel
 BuildRequires: jimtcl-devel
-BuildRequires: libgpiod-devel
+#BuildRequires: libgpiod-devel
 BuildRequires: libjaylink-devel
 BuildRequires: libftdi-devel
 BuildRequires: libusbx-devel
@@ -78,7 +78,7 @@ popd
   --enable-oocd_trace \
   --enable-buspirate \
   --enable-sysfsgpio \
-  --enable-linuxgpiod \
+#  --enable-linuxgpiod \
   --enable-esp-usb-jtag \
   --enable-xlnx-pcie-xvc \
   --enable-remote-bitbang \
