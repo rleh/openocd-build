@@ -102,6 +102,7 @@ chrpath --delete %{buildroot}/%{_bindir}/openocd
 %doc AUTHORS NEWS* NEWTAPS README TODO
 %{_datadir}/%{name}/scripts
 %{_datadir}/%{name}/OpenULINK/ulink_firmware.hex
+%{_datadir}/%{name}/angie
 %{_bindir}/%{name}
 %{_prefix}/lib/udev/rules.d/60-openocd.rules
 # doc
