@@ -12,7 +12,7 @@ env:
 jobs:
 
   init:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Build Version
       id: build_version
@@ -34,7 +34,7 @@ jobs:
 
   build-deb:
     needs: init
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Build Version
       run: |
@@ -100,9 +100,9 @@ jobs:
 
   build-rpm:
     needs: init
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
-      image: fedora:37
+      image: fedora:41
     steps:
     - name: Update Fedora and install dependencies
       run: |
@@ -154,7 +154,7 @@ jobs:
 
   build-deb-arm64:
     needs: init
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Build Version
       run: |
@@ -163,11 +163,11 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v3
     - name: Build on Arm64
-      uses: uraimo/run-on-arch-action@v2.5.0
+      uses: uraimo/run-on-arch-action@v2
       id: runcmd
       with:
         arch: aarch64
-        distro: ubuntu22.04
+        distro: ubuntu_latest
         githubToken: ${{ github.token }}
         run: |
           uname -a
